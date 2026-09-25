@@ -1,4 +1,7 @@
-##query genbank for taxa
+
+
+# Script to query Genbank for taxa ----------------------------------------
+
 library(tidyverse)
 library(httr2)
 library(jsonlite)
@@ -8,32 +11,29 @@ library(patchwork)
 
 #setwd("~/Dropbox/2018WorkingFiles/Marc2018/GUBIC/Trait perspective paper")
 
-# June 2026 World Flora Online Plant List
+# June 2026 World Flora Online Plant List ----------------------------------
 wfo <- read_tsv("classification.csv",show_col_types = FALSE)
 names(wfo)
 head(wfo)
 
 
-#----------------------------------------------------------
-# 2. Select accepted flowering-plant species
-#----------------------------------------------------------
+
+# Select accepted flowering-plant species ------------------------------
+
 
 angio <- wfo %>% filter(taxonRank == "species",taxonomicStatus == "Accepted")
 
-# Number of accepted species per family
+# Number of accepted species per family ------------------------------
 family_richness <- angio %>% filter(!is.na(family),family != "") %>%
   count(family, name = "Accepted_species_WFO") %>%
   arrange(desc(Accepted_species_WFO))
 
 head(family_richness, 20)
 
-#----------------------------------------------------------
-# GenBank accession count
-#----------------------------------------------------------
 
+# GenBank accession count --------------------------------
 
 get_genbank_count <- function(family) {
-  
   query <- paste0('"', family, '"[Organism]')
   result <- entrez_search(db = "nuccore",term = query,retmax = 0)
   
@@ -41,6 +41,8 @@ get_genbank_count <- function(family) {
   
   result$count
 }
+
+#just checking some families
 
 #get_genbank_count("Asteraceae")
 #get_genbank_count("Poaceae")
@@ -53,9 +55,10 @@ dat <- family_richness %>%
 
 dat$Acc_per_spp<-dat$GenBank_accessions/dat$Accepted_species_WFO
 
-write.csv(dat,"spp_accessions.csv")
+#write.csv(dat,"spp_accessions.csv")
 #dat<-read.csv("spp_accessions.csv",row.names=NULL)
 
+# plots and summaries ------------------------------
 
 GenP<-ggplot(dat, aes(x = Accepted_species_WFO,y = GenBank_accessions)) +
   geom_point(size = 4,colour = "aquamarine4",alpha = 0.75) +
